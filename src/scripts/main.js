@@ -60,7 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
     <label>Position: <input name='position' type='text' data-qa='position' required></label>
     <label>Office:
       <select name='office' data-qa='office' required>
-        <option value=''>Select...</option>
         <option>Tokyo</option>
         <option>Singapore</option>
         <option>London</option>
@@ -104,11 +103,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const empAge = parseInt(data.age);
     const empSalary = parseInt(data.salary);
 
-    if (empName.trim().length < 4) {
+    // ✅ Count only alphabetic letters for name validation
+    const letters = (empName.match(/[A-Za-z]/g) || []).length;
+
+    if (letters < 4) {
       showNotification(
         'error',
         'Invalid Name',
-        'Name must have at least 4 letters.',
+        'Name must contain at least 4 letters.',
       );
 
       return;
@@ -147,7 +149,22 @@ document.addEventListener('DOMContentLoaded', () => {
   tbody.addEventListener('dblclick', (e) => {
     const cell = e.target.closest('td');
 
-    if (!cell || cell.querySelector('input')) {
+    if (!cell) {
+      return;
+    }
+
+    // ✅ Allow only one editable cell at a time
+    const existingInput = document.querySelector('.cell-input');
+
+    if (existingInput) {
+      const parentCell = existingInput.closest('td');
+
+      parentCell.innerText =
+        existingInput.value.trim() || existingInput.dataset.original;
+      existingInput.remove();
+    }
+
+    if (cell.querySelector('input')) {
       return;
     }
 
@@ -156,6 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     input.type = 'text';
     input.className = 'cell-input';
+    input.dataset.original = original;
     input.value = original;
     cell.innerText = '';
     cell.appendChild(input);
